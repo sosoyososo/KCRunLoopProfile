@@ -19,7 +19,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
-    [KCRunLoopProfile profile];
+    [KCRunLoopProfile profileWithCheckDuration:1.0/60];
     [KCRunLoopProfile setStackTraceCallBackWhenSlow:^(NSArray<NSString *> *stackTrace) {
         NSLog(@"%@", stackTrace);
     }];
