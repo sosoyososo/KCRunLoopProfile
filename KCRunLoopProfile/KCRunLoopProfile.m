@@ -132,9 +132,7 @@ static void runLoopObserverCallBack(CFRunLoopObserverRef observer,  CFRunLoopAct
 }
 
 - (void)addTimerAndRLOb {
-    self.timer = [NSTimer timerWithTimeInterval:_s_timerDuration*0.85 repeats:YES block:^(NSTimer * _Nonnull timer) {
-        [self checkTimer];
-    }];
+    self.timer = [NSTimer timerWithTimeInterval:_s_timerDuration*0.85 target:self selector:@selector(checkTimer) userInfo:nil repeats:YES];
     [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSDefaultRunLoopMode];
     while (kCFRunLoopRunStopped != CFRunLoopRunInMode(kCFRunLoopDefaultMode, ((NSDate *)[NSDate distantFuture]).timeIntervalSinceReferenceDate, NO)) {
     }
