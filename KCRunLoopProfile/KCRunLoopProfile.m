@@ -81,9 +81,6 @@ static void runLoopObserverCallBack(CFRunLoopObserverRef observer,  CFRunLoopAct
     if (self.inProfile) {
         return;
     }
-    
-    
-    
     dispatch_async(dispatch_get_main_queue(), ^{
         CFRunLoopObserverContext context = {0,(__bridge void*)self,NULL,NULL};
         observer = CFRunLoopObserverCreate(kCFAllocatorDefault,
@@ -94,6 +91,8 @@ static void runLoopObserverCallBack(CFRunLoopObserverRef observer,  CFRunLoopAct
                                            &context);
         
         CFRunLoopAddObserver(CFRunLoopGetMain(), observer, kCFRunLoopCommonModes);
+        
+        
         [self addMainRunloopWatcher];
     });
 }
@@ -115,19 +114,30 @@ static void runLoopObserverCallBack(CFRunLoopObserverRef observer,  CFRunLoopAct
 }
 
 - (void)addMainRunloopWatcher {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        _queue = dispatch_queue_create("_runloop_profile_queue", DISPATCH_QUEUE_SERIAL);
-        dispatch_queue_set_specific(_queue, (__bridge void *)self, (__bridge void *)_queue, NULL);
-    });
-    dispatch_async(_queue, ^{
-        self.timer = [NSTimer timerWithTimeInterval:_s_timerDuration*0.85 repeats:YES block:^(NSTimer * _Nonnull timer) {
-            [self checkTimer];
-        }];
-        [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSDefaultRunLoopMode];
-        while (kCFRunLoopRunStopped != CFRunLoopRunInMode(kCFRunLoopDefaultMode, ((NSDate *)[NSDate distantFuture]).timeIntervalSinceReferenceDate, NO)) {
-        }
-    });
+    if (_queue == nil) {
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            _queue = dispatch_queue_create("_runloop_profile_queue", DISPATCH_QUEUE_SERIAL);
+            dispatch_queue_set_specific(_queue, (__bridge void *)self, (__bridge void *)_queue, NULL);
+            
+            dispatch_async(_queue, ^{
+                [self addTimerAndRLOb];
+            });
+        });
+    } else {
+        dispatch_async(_queue, ^{
+            [self addTimerAndRLOb];
+        });
+    }
+}
+
+- (void)addTimerAndRLOb {
+    self.timer = [NSTimer timerWithTimeInterval:_s_timerDuration*0.85 repeats:YES block:^(NSTimer * _Nonnull timer) {
+        [self checkTimer];
+    }];
+    [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSDefaultRunLoopMode];
+    while (kCFRunLoopRunStopped != CFRunLoopRunInMode(kCFRunLoopDefaultMode, ((NSDate *)[NSDate distantFuture]).timeIntervalSinceReferenceDate, NO)) {
+    }
 }
 
 
